@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Timeline Tracker</title>
+    <link rel="stylesheet" href="/src/styles/unified.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">📋 Medical Timeline</h1>
+                    <p class="app-subtitle">Track your health journey</p>
+                </div>
+                <div class="header-controls">
+                    <div class="theme-selector-compact">
+                        <label for="theme-select">Theme:</label>
+                        <select id="theme-select">
+                            <option value="default">Default</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="forest">Forest</option>
+                            <option value="sunset">Sunset</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <div class="container">
+                <!-- Quick Actions -->
+                <section class="quick-actions">
+                    <button class="btn btn-primary btn-lg" onclick="toggleQuickAdd()">
+                        <span class="btn-icon">+</span> Add Event
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData()">
+                        <span class="btn-icon">⬇</span> Export
+                    </button>
+                    <button class="btn btn-secondary" onclick="importData()">
+                        <span class="btn-icon">⬆</span> Import
+                    </button>
+                    <input type="file" id="importFile" accept=".json" onchange="handleImport(event)" style="display:none;">
+                    <div id="statusMessage" class="status-message"></div>
+                </section>
+
+                <!-- Quick Add Panel (Hidden by default) -->
+                <section id="quickAddPanel" class="quick-add-panel hidden">
+                    <div class="panel-header">
+                        <h2>Quick Add Event</h2>
+                        <button class="btn-close" onclick="toggleQuickAdd()">×</button>
+                    </div>
+                    <form class="quick-add-form" onsubmit="handleQuickAdd(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventDate">Date *</label>
+                                <input type="date" id="eventDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="eventCategory">Category *</label>
+                                <select id="eventCategory" onchange="updateEventTypes()" required>
+                                    <option value="">Select...</option>
+                                    <option value="Medical">Medical</option>
+                                    <option value="Appointments">Appointments</option>
+                                    <option value="Personal">Personal</option>
+                                    <option value="Administrative">Administrative</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="eventType">Type *</label>
+                                <select id="eventType" required></select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventTitle">Title *</label>
+                                <input type="text" id="eventTitle" placeholder="Event title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="eventSeverity">Impact Level</label>
+                                <select id="eventSeverity">
+                                    <option value="1">Low</option>
+                                    <option value="2">Moderate</option>
+                                    <option value="3">Significant</option>
+                                    <option value="4">High</option>
+                                    <option value="5">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="eventDetails">Medical Details</label>
+                            <textarea id="eventDetails" placeholder="Add medical details..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="personalNotes">Personal Notes</label>
+                            <textarea id="personalNotes" placeholder="Add personal notes..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="toggleQuickAdd()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Event</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Visual Timeline Section -->
+                <section class="section timeline-section">
+                    <div class="section-header">
+                        <h2>Timeline Overview</h2>
+                        <div class="timeline-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #3b82f6;"></span>
+                                <span>Medical</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #10b981;"></span>
+                                <span>Appointments</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #ef4444;"></span>
+                                <span>Personal</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: #8b5cf6;"></span>
+                                <span>Administrative</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="visual-timeline-wrapper">
+                        <div class="visual-timeline" id="timelineContainer"></div>
+                    </div>
+                </section>
+
+                <!-- Detailed Events Section -->
+                <section class="section events-section">
+                    <div class="section-header">
+                        <h2>Events</h2>
+                        <div class="section-controls">
+                            <input type="text" id="searchInput" placeholder="Search events..." class="search-box">
+                            <select id="filterCategory" class="filter-select" onchange="filterEvents()">
+                                <option value="">All Categories</option>
+                                <option value="Medical">Medical</option>
+                                <option value="Appointments">Appointments</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Administrative">Administrative</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="timeline" class="timeline-list"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-overlay" onclick="closeEditModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Event</h2>
+                <button class="btn-close" onclick="closeEditModal()">×</button>
+            </div>
+            <form class="modal-form" onsubmit="handleSaveEdit(event)">
+                <input type="hidden" id="editEventId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEventDate">Date *</label>
+                        <input type="date" id="editEventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventCategory">Category *</label>
+                        <select id="editEventCategory" onchange="updateEditEventTypes()" required>
+                            <option value="Medical">Medical</option>
+                            <option value="Appointments">Appointments</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Administrative">Administrative</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEventType">Type *</label>
+                        <select id="editEventType" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventSeverity">Impact Level</label>
+                        <select id="editEventSeverity">
+                            <option value="1">Low</option>
+                            <option value="2">Moderate</option>
+                            <option value="3">Significant</option>
+                            <option value="4">High</option>
+                            <option value="5">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="editEventTitle">Title *</label>
+                    <input type="text" id="editEventTitle" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="editEventDetails">Medical Details</label>
+                    <textarea id="editEventDetails"></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="editEventPersonalNotes">Personal Notes</label>
+                    <textarea id="editEventPersonalNotes"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="eventTooltip" class="event-tooltip"></div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
