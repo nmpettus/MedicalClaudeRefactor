@@ -1,0 +1,26 @@
+{
+  "name": "medical-timeline-tracker",
+  "private": true,
+  "version": "2.0.0",
+  "description": "A beautiful and functional medical timeline tracker app",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "medical",
+    "timeline",
+    "tracker",
+    "health",
+    "events"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
